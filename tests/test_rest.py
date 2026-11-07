@@ -1,3 +1,4 @@
+from datetime import timedelta
 import io
 import json
 
@@ -12,6 +13,7 @@ from feishukit.exception import (
     RequestFailed,
 )
 from feishukit.models.im.v1.message import CreateMessageBody
+from feishukit.retry import RetryRateLimit
 
 from .conftest import ok
 
@@ -213,24 +215,99 @@ def test_rate_limit_is_recognised(make_client, response):
     assert info.value.retry_after.total_seconds() == 7
 
 
+def rate_limited(reset: str) -> httpx2.Response:
+    return httpx2.Response(
+        429,
+        json={"code": 99991400, "msg": "limit"},
+        headers={"x-ogw-ratelimit-reset": reset},
+    )
+
+
 def test_rate_limit_is_retried_even_for_post(make_client, monkeypatch):
     slept = []
     monkeypatch.setattr("time.sleep", slept.append)
-    answers = iter(
-        [
-            httpx2.Response(
-                429,
-                json={"code": 99991400, "msg": "limit"},
-                headers={"x-ogw-ratelimit-reset": "3"},
-            ),
-            ok({"message_id": "om_1"}),
-        ]
-    )
+    monkeypatch.setattr("random.uniform", lambda low, high: 0.25)
+    answers = iter([rate_limited("3"), ok({"message_id": "om_1"})])
     feishu, server = make_client(lambda r: next(answers), auto_retry=True)
 
     assert send_text(feishu).parsed_data.message_id == "om_1"
-    assert slept == [3]
+    assert slept == [3.25]
     assert len(server.requests) == 2
+
+
+@pytest.mark.parametrize(("pick", "expected"), [(min, 3), (max, 4)])
+def test_rate_limit_jitter_only_adds_to_the_wait(
+    make_client, monkeypatch, pick, expected
+):
+    # Retrying before the reset would only hit the limit again.
+    slept = []
+    monkeypatch.setattr("time.sleep", slept.append)
+    monkeypatch.setattr("random.uniform", lambda low, high: pick(low, high))
+    answers = iter([rate_limited("3"), ok({})])
+    feishu, _ = make_client(lambda r: next(answers), auto_retry=True)
+
+    send_text(feishu)
+
+    assert slept == [expected]
+
+
+def test_long_rate_limit_is_raised_instead_of_waited_for(make_client, monkeypatch):
+    slept = []
+    monkeypatch.setattr("time.sleep", slept.append)
+    feishu, server = make_client(lambda r: rate_limited("3600"), auto_retry=True)
+
+    with pytest.raises(RateLimitExceeded) as info:
+        send_text(feishu)
+
+    assert info.value.retry_after.total_seconds() == 3600
+    assert slept == []
+    assert len(server.requests) == 1
+
+
+@pytest.mark.anyio
+async def test_long_rate_limit_is_raised_instead_of_waited_for_async(
+    make_client, monkeypatch
+):
+    slept = []
+
+    async def sleep(seconds):
+        slept.append(seconds)
+
+    monkeypatch.setattr("anyio.sleep", sleep)
+    feishu, server = make_client(lambda r: rate_limited("3600"), auto_retry=True)
+
+    with pytest.raises(RateLimitExceeded):
+        await feishu.rest.im.v1.message.async_get("om_1")
+
+    assert slept == []
+    assert len(server.requests) == 1
+
+
+def test_rate_limit_at_the_cap_is_still_waited_for(make_client, monkeypatch):
+    slept = []
+    monkeypatch.setattr("time.sleep", slept.append)
+    answers = iter([rate_limited("60"), ok({})])
+    feishu, _ = make_client(lambda r: next(answers), auto_retry=True)
+
+    send_text(feishu)
+
+    assert len(slept) == 1
+    assert slept[0] >= 60
+
+
+def test_wait_cap_is_configurable(make_client, monkeypatch):
+    slept = []
+    monkeypatch.setattr("time.sleep", slept.append)
+    answers = iter([rate_limited("3600"), ok({})])
+    feishu, _ = make_client(
+        lambda r: next(answers),
+        auto_retry=RetryRateLimit(max_wait=timedelta(hours=2)),
+    )
+
+    send_text(feishu)
+
+    assert len(slept) == 1
+    assert slept[0] >= 3600
 
 
 def test_server_error_on_post_is_not_replayed(make_client, monkeypatch):
@@ -241,6 +318,20 @@ def test_server_error_on_post_is_not_replayed(make_client, monkeypatch):
         send_text(feishu)
 
     assert len(server.requests) == 1
+
+
+@pytest.mark.parametrize(("pick", "expected"), [(min, [0.5, 2, 4.5]), (max, [1, 4, 9])])
+def test_server_error_backoff_is_jittered(make_client, monkeypatch, pick, expected):
+    slept = []
+    monkeypatch.setattr("time.sleep", slept.append)
+    monkeypatch.setattr("random.uniform", lambda low, high: pick(low, high))
+    feishu, server = make_client(lambda r: httpx2.Response(503), auto_retry=True)
+
+    with pytest.raises(RequestFailed):
+        feishu.rest.im.v1.message.get("om_1")
+
+    assert slept == expected
+    assert len(server.requests) == 4
 
 
 def test_server_error_on_get_is_retried(make_client, monkeypatch):

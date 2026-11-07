@@ -1,4 +1,5 @@
 from datetime import timedelta
+import random
 
 from .exception import FeishuException, RateLimitExceeded, RequestFailed
 from .log import logger
@@ -10,27 +11,44 @@ from .typing import RetryOption as RetryOption
 # deliver the message twice.
 IDEMPOTENT_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "PUT", "DELETE"})
 
+# The reset time comes from the server and nothing bounds it. Beyond this, a
+# blocked call is worse than an error, and the caller knows `retry_after`.
+DEFAULT_MAX_WAIT = timedelta(seconds=60)
+
+# Clients throttled together are released together, so they are spread out to
+# keep the retries from tripping the limit again.
+RATE_LIMIT_JITTER_SECONDS = 1.0
+
 
 class RetryRateLimit:
     """Retry decision function for rate limit exceeded.
 
     A rate limited request was rejected before doing anything, so this applies
-    to every method.
+    to every method. Limits resetting later than `max_wait` are not waited for.
     """
 
-    __slots__ = ("max_retry",)
+    __slots__ = ("max_retry", "max_wait")
 
-    def __init__(self, max_retry: int = 3) -> None:
+    def __init__(
+        self, max_retry: int = 3, max_wait: timedelta = DEFAULT_MAX_WAIT
+    ) -> None:
         self.max_retry = max_retry
+        self.max_wait = max_wait
 
     def __call__(self, exc: FeishuException, retry_count: int) -> RetryOption:
-        if retry_count < self.max_retry and isinstance(exc, RateLimitExceeded):
+        if (
+            retry_count < self.max_retry
+            and isinstance(exc, RateLimitExceeded)
+            and exc.retry_after <= self.max_wait
+        ):
             logger.warning(
                 f"{exc.__class__.__name__} for request "
                 f"{exc.request.method} {exc.request.url}",
                 exc_info=exc,
             )
-            return RetryOption(True, exc.retry_after)
+            # Only ever later than the reset: retrying early would be rejected.
+            jitter = random.uniform(0, RATE_LIMIT_JITTER_SECONDS)
+            return RetryOption(True, exc.retry_after + timedelta(seconds=jitter))
 
         return RetryOption(False)
 
@@ -58,7 +76,9 @@ class RetryServerError:
                 f"{exc.request.method} {exc.request.url}",
                 exc_info=exc,
             )
-            return RetryOption(True, timedelta(seconds=(retry_count + 1) ** 2))
+            backoff = (retry_count + 1) ** 2
+            delay = random.uniform(backoff / 2, backoff)
+            return RetryOption(True, timedelta(seconds=delay))
 
         return RetryOption(False)
 
