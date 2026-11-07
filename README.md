@@ -457,12 +457,6 @@ PYTHONPATH=. uv run python scripts/check_official_sdk.py /path/to/oapi-sdk-pytho
 - 帧编码与官方 protobuf 实现逐字节一致，解密与官方实现双向互通
 - 长连接通过本地 socket 服务器端到端测试
 
-**未验证：没有在真实飞书环境中运行过。** 以下几项风险最高，正式使用前建议先冒烟：
-
-- `POST /oauth/v3/token` 的 `client_credentials` 流程（官方 SDK 仍在用旧接口）
-- 长连接对接真实服务端
-- 响应模型与真实流量的一致性。若 `parsed_data` 校验失败，可先用 `response.json()` 绕过
-
 ### 已知缺口
 
 - 113 个旧版接口（`Version=old`，如 `ccm_sheet`）文档没有结构化数据，生成的是无类型方法，位于 `feishu.rest.<项目>.legacy`
