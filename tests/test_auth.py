@@ -582,3 +582,33 @@ def test_credentials_are_not_sent_to_unsafe_urls(url):
 
 def test_plain_http_is_fine_for_a_local_gateway():
     assert Feishu("t-x", base_url="http://127.0.0.1:8080").config.base_url
+
+
+def test_plain_http_needs_an_explicit_opt_in():
+    feishu = Feishu(
+        "t-x",
+        base_url="http://feishu.internal:8080",
+        oauth_base_url="http://accounts.internal:8080",
+        insecure_allow_http=True,
+    )
+
+    assert str(feishu.config.base_url) == "http://feishu.internal:8080"
+    assert str(feishu.config.oauth_base_url) == "http://accounts.internal:8080"
+
+
+def test_oauth_base_url_is_held_to_the_same_rule():
+    with pytest.raises(ValueError):
+        Feishu("t-x", oauth_base_url="http://accounts.internal:8080")
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://user:pass@feishu.internal",
+        "http://user:pass@feishu.internal",
+        "ftp://feishu.internal",
+    ],
+)
+def test_the_http_opt_in_relaxes_nothing_else(url):
+    with pytest.raises(ValueError):
+        Feishu("t-x", base_url=url, insecure_allow_http=True)

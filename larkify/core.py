@@ -104,6 +104,7 @@ class FeishuCore(Generic[A]):
         throttler: BaseThrottler | None = None,
         auto_retry: bool | RetryDecisionFunc = True,
         rest_api_validate_body: bool = True,
+        insecure_allow_http: bool = False,
     ): ...
 
     # token auth without config
@@ -128,6 +129,7 @@ class FeishuCore(Generic[A]):
         throttler: BaseThrottler | None = None,
         auto_retry: bool | RetryDecisionFunc = True,
         rest_api_validate_body: bool = True,
+        insecure_allow_http: bool = False,
     ): ...
 
     # other auth strategies without config
@@ -152,6 +154,7 @@ class FeishuCore(Generic[A]):
         throttler: BaseThrottler | None = None,
         auto_retry: bool | RetryDecisionFunc = True,
         rest_api_validate_body: bool = True,
+        insecure_allow_http: bool = False,
     ): ...
 
     def __init__(
@@ -175,6 +178,7 @@ class FeishuCore(Generic[A]):
         throttler: BaseThrottler | None = None,
         auto_retry: bool | RetryDecisionFunc = True,
         rest_api_validate_body: bool = True,
+        insecure_allow_http: bool = False,
     ):
         auth = auth or UnauthAuthStrategy()  # type: ignore
         self.auth: A = (  # type: ignore
@@ -198,6 +202,7 @@ class FeishuCore(Generic[A]):
             throttler=throttler,
             auto_retry=auto_retry,
             rest_api_validate_body=rest_api_validate_body,
+            insecure_allow_http=insecure_allow_http,
         )
 
         self.__sync_client: ContextVar[httpx2.Client | None] = ContextVar(

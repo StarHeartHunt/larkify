@@ -50,12 +50,14 @@ class Config:
         return self.__class__(**self.dict())
 
 
-def _build_origin_url(url: str | httpx2.URL) -> httpx2.URL:
+def _build_origin_url(
+    url: str | httpx2.URL, *, insecure_allow_http: bool = False
+) -> httpx2.URL:
     """Validate a URL that credentials are going to be sent to."""
     url = url if isinstance(url, httpx2.URL) else httpx2.URL(url)
 
     if url.scheme != "https" and not (
-        url.scheme == "http" and url.host in _LOOPBACK_HOSTS
+        url.scheme == "http" and (insecure_allow_http or url.host in _LOOPBACK_HOSTS)
     ):
         raise ValueError(f"url must use https: {url}")
     if url.userinfo:
@@ -67,15 +69,24 @@ def _build_origin_url(url: str | httpx2.URL) -> httpx2.URL:
     return url
 
 
-def build_base_url(base_url: str | httpx2.URL | None) -> httpx2.URL:
-    return _build_origin_url(base_url or FEISHU_BASE_URL)
+def build_base_url(
+    base_url: str | httpx2.URL | None, *, insecure_allow_http: bool = False
+) -> httpx2.URL:
+    return _build_origin_url(
+        base_url or FEISHU_BASE_URL, insecure_allow_http=insecure_allow_http
+    )
 
 
 def build_oauth_base_url(
-    oauth_base_url: str | httpx2.URL | None, base_url: httpx2.URL
+    oauth_base_url: str | httpx2.URL | None,
+    base_url: httpx2.URL,
+    *,
+    insecure_allow_http: bool = False,
 ) -> httpx2.URL | None:
     if oauth_base_url:
-        return _build_origin_url(oauth_base_url)
+        return _build_origin_url(
+            oauth_base_url, insecure_allow_http=insecure_allow_http
+        )
     if base_url.host == httpx2.URL(FEISHU_BASE_URL).host:
         return httpx2.URL(FEISHU_OAUTH_BASE_URL)
     if base_url.host == httpx2.URL(LARK_BASE_URL).host:
@@ -130,12 +141,15 @@ def get_config(
     throttler: BaseThrottler | None = None,
     auto_retry: bool | RetryDecisionFunc = True,
     rest_api_validate_body: bool = True,
+    insecure_allow_http: bool = False,
 ) -> Config:
     """Build the configs from the given options."""
-    url = build_base_url(base_url)
+    url = build_base_url(base_url, insecure_allow_http=insecure_allow_http)
     return Config(
         url,
-        build_oauth_base_url(oauth_base_url, url),
+        build_oauth_base_url(
+            oauth_base_url, url, insecure_allow_http=insecure_allow_http
+        ),
         build_user_agent(user_agent),
         follow_redirects,
         build_timeout(timeout),
