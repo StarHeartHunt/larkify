@@ -7,3 +7,4 @@ __pycache__/
 dist/
 # Snapshot of the documentation, about 140 MB. `python -m codegen fetch` rebuilds it.
 schema/
+site/

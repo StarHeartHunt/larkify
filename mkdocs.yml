@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+site_name: larkify
+site_description: 现代、完整类型标注的飞书 / Lark Python SDK
+site_url: https://starhearthunt.github.io/larkify/
+
+repo_name: StarHeartHunt/larkify
+repo_url: https://github.com/StarHeartHunt/larkify
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2026 StarHeartHunt
+
+theme:
+  name: material
+  language: zh
+  # Roboto has no CJK glyphs, and Google Fonts blocks rendering where it is slow.
+  font: false
+
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+  palette:
+    - media: "(prefers-color-scheme)"
+      primary: black
+      toggle:
+        icon: material/brightness-auto
+        name: 切换到浅色模式
+
+    - scheme: default
+      media: "(prefers-color-scheme: light)"
+      primary: black
+      toggle:
+        icon: material/brightness-7
+        name: 切换到深色模式
+
+    - scheme: slate
+      media: "(prefers-color-scheme: dark)"
+      primary: black
+      toggle:
+        icon: material/brightness-4
+        name: 跟随系统
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/StarHeartHunt/larkify
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/larkify/
+
+# The search plugin segments Chinese with jieba whenever it is installed.
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      # The default slugify strips non-ASCII, leaving Chinese headings with `_1`.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+
+nav:
+  - 首页:
+      - 简介: index.md
+      - 安装: installation.md
+      - 覆盖范围: coverage.md
+      - 贡献指南: contributing.md
+  - 快速开始:
+      - quickstart/index.md
+      - 自建应用调用接口: quickstart/self-built-app.md
+      - 用户身份授权: quickstart/oauth-web-flow.md
+      - 商店应用: quickstart/isv-app.md
+      - 长连接接收事件: quickstart/long-connection.md
+      - Webhook 接收事件: quickstart/webhook.md
+  - 使用:
+      - 入门:
+          - 认证: usage/getting-started/authentication.md
+          - 配置: usage/getting-started/configuration.md
+          - 复用客户端: usage/getting-started/reusing-client.md
+      - 调用接口: usage/rest-api.md
+      - 事件订阅: usage/events.md
+      - 自动重试: usage/auto-retry.md
+      - 错误处理: usage/error-handling.md
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn

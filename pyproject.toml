@@ -17,6 +17,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/StarHeartHunt/larkify"
+Documentation = "https://starhearthunt.github.io/larkify/"
 Repository = "https://github.com/StarHeartHunt/larkify"
 Issues = "https://github.com/StarHeartHunt/larkify/issues"
 
@@ -43,6 +44,7 @@ test = [
   "httpx2[ws] >=2.16.0, <3.0.0",
   "fakeredis >=2.26.0",
 ]
+docs = ["mkdocs-material >=9.7.0, <10.0.0", "jieba >=0.42.1"]
 dev = [
   { include-group = "codegen" },
   { include-group = "test" },

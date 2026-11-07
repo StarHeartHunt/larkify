@@ -22,7 +22,7 @@ from larkify.webhooks.events.im import ImMessageReceiveV1Event
 ENCRYPT_KEY = "my-encrypt-key"
 TOKEN = "verification-token"
 
-# Produced with the official SDK's AESCipher, see the interop notes in the README.
+# Produced with the official SDK's AESCipher, see the interop notes in docs/coverage.md.
 OFFICIAL_CIPHERTEXT = "MDEyMzQ1Njc4OWFiY2RlZtgjNrdr13hst6H3XbVDgL0bv3FS87ZnqWq1JWPraCsf"
 
 
