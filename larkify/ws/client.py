@@ -199,7 +199,14 @@ class WSClient:
 
         if response.status_code != httpx2.codes.OK:
             raise WebSocketError(response.status_code, "system busy")
-        body = response.json()
+        # Anything in front of the endpoint can answer with anything, and that
+        # must not end a client that reconnects for as long as the server allows.
+        try:
+            return self._parse_endpoint(response.json())
+        except (AttributeError, KeyError, TypeError, ValueError) as e:
+            raise WebSocketError(0, f"malformed endpoint response: {e!r}") from e
+
+    def _parse_endpoint(self, body: Any) -> str:
         code, msg = body.get("code"), body.get("msg") or ""
         if code == CODE_SYSTEM_BUSY:
             raise WebSocketError(code, "system busy")
@@ -224,7 +231,10 @@ class WSClient:
         if status is None:
             return WebSocketError(response.status_code, "handshake failed")
 
-        code = int(status)
+        try:
+            code = int(status)
+        except ValueError:
+            return WebSocketError(response.status_code, msg or "handshake failed")
         if code == CODE_AUTH_FAILED:
             auth_error = headers.get(HEADER_HANDSHAKE_AUTH_ERROR)
             exceeded = auth_error == str(CODE_EXCEED_CONN_LIMIT)

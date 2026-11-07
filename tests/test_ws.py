@@ -77,6 +77,7 @@ class FakeServer:
         self.frames_on_connect: list[list[bytes]] = []
         self.connections = 0
         self.endpoint_body: dict | None = None
+        self.endpoint_answers: list[bytes] = []
         self.close_after_send = False
         self.client_config = {
             "ReconnectCount": -1,
@@ -113,6 +114,8 @@ class FakeServer:
             },
         }
         raw = json.dumps(body).encode()
+        if self.endpoint_answers:
+            raw = self.endpoint_answers.pop(0)
         writer.write(
             b"HTTP/1.1 200 OK\r\ncontent-type: application/json\r\n"
             + f"content-length: {len(raw)}\r\nconnection: close\r\n\r\n".encode()
@@ -421,6 +424,70 @@ async def test_transient_handshake_failure_is_retried(server):
             while len(server.endpoint_requests) < 2:
                 await anyio.sleep(0.01)
         tasks.cancel_scope.cancel()
+
+
+@pytest.mark.anyio
+async def test_unusable_handshake_status_is_retried(server):
+    server.refuse_with = {"handshake-status": "busy"}
+    client = WSClient(client_for(server), EventDispatcher())
+
+    async with anyio.create_task_group() as tasks:
+        tasks.start_soon(client.arun)
+        with anyio.fail_after(5):
+            while len(server.endpoint_requests) < 2:
+                await anyio.sleep(0.01)
+        tasks.cancel_scope.cancel()
+
+
+@pytest.mark.anyio
+async def test_unusable_handshake_status_is_reported(server):
+    server.refuse_with = {"handshake-status": "busy", "handshake-msg": "try later"}
+    client = WSClient(client_for(server), EventDispatcher(), auto_reconnect=False)
+
+    with pytest.raises(WebSocketError) as info, anyio.fail_after(5):
+        await client.arun()
+
+    assert (info.value.code, info.value.msg) == (400, "try later")
+    assert info.value.retryable is True
+
+
+MALFORMED_ENDPOINT_ANSWERS = [
+    b"<html>",
+    b"[]",
+    b'{"code": 0}',
+    b'{"code": 0, "data": {}}',
+    b'{"code": 0, "data": {"URL": "ws://x/ws"}}',
+    b'{"code": 0, "data": {"URL": "ws://x/ws?service_id=abc"}}',
+    b'{"code": 0, "data": {"URL": 1}}',
+    b'{"code": 0, "data": {"URL": "ws://x/ws?service_id=1", "ClientConfig": [1]}}',
+]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("answer", MALFORMED_ENDPOINT_ANSWERS)
+async def test_malformed_endpoint_answer_is_retried(server, answer):
+    server.endpoint_answers.append(answer)
+    client = WSClient(client_for(server), EventDispatcher())
+    client.config.reconnect_interval = 0
+
+    async with anyio.create_task_group() as tasks:
+        tasks.start_soon(client.arun)
+        with anyio.fail_after(5):
+            while server.connections < 1:
+                await anyio.sleep(0.01)
+        tasks.cancel_scope.cancel()
+
+
+@pytest.mark.anyio
+async def test_malformed_endpoint_answer_is_reported(server):
+    server.endpoint_answers.append(b"<html>")
+    client = WSClient(client_for(server), EventDispatcher(), auto_reconnect=False)
+
+    with pytest.raises(WebSocketError, match="malformed endpoint") as info:
+        with anyio.fail_after(5):
+            await client.arun()
+
+    assert info.value.retryable is True
 
 
 @pytest.mark.anyio
