@@ -28,7 +28,7 @@ larkify/
 └── ws/                    长连接与帧编解码
 codegen/                   代码生成器
 docs/                      文档站
-scripts/                   生成结果校验
+scripts/                   生成结果校验、发布脚本
 schema/                    文档元数据快照（不入库）
 ```
 
@@ -85,3 +85,28 @@ uv run --group docs mkdocs build --strict # 与 CI 相同的检查
 ```
 
 推送到 `main` 后由 `.github/workflows/docs.yml` 构建并发布到 GitHub Pages。
+
+## 发布
+
+提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/v1.0.0/)，版本号和 `CHANGELOG.md` 都由 [git-cliff](https://git-cliff.org) 从提交历史生成，配置在 `cliff.toml`。
+
+```bash
+uv run python scripts/release.py          # 版本号根据提交推算
+uv run python scripts/release.py 1.0.0    # 或者手动指定
+```
+
+脚本会更新 `pyproject.toml`、`uv.lock` 和 `CHANGELOG.md`，然后提交并打 tag，但不会推送。确认无误后执行脚本最后打印的命令：
+
+```bash
+git push --atomic origin main vX.Y.Z
+```
+
+推送 tag 后由 `.github/workflows/release.yml` 依次运行测试、发布到 PyPI、创建 GitHub Release。
+
+| 提交类型 | 版本变化 |
+| --- | --- |
+| 破坏性变更（`feat!:` 或 `BREAKING CHANGE:`） | 0.x 阶段升 minor，1.0 之后升 major |
+| `feat` | 升 minor |
+| `fix`、`perf`、`refactor`、`docs`、`build` | 升 patch |
+
+`chore`、`ci`、`style`、`test` 不写入 changelog。自上个 tag 以来只有这些提交时没有可发布的内容，脚本会直接退出。

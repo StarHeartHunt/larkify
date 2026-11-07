@@ -1,0 +1,52 @@
+# Changelog generated from the Conventional Commits history.
+# scripts/release.py writes CHANGELOG.md with it, and the release workflow the
+# notes of the GitHub release.
+
+[changelog]
+header = """
+# Changelog
+
+Generated from the commit history by [git-cliff](https://git-cliff.org).
+
+"""
+body = """
+{% set repo = "https://github.com/StarHeartHunt/larkify" -%}
+{% if version -%}
+    {% if previous.version -%}
+        ## [{{ version | trim_start_matches(pat="v") }}]({{ repo }}/compare/{{ previous.version }}...{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+    {% else -%}
+        ## [{{ version | trim_start_matches(pat="v") }}]({{ repo }}/tree/{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+    {% endif -%}
+{% else -%}
+    ## Unreleased
+{% endif -%}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}]({{ repo }}/commit/{{ commit.id }}))
+{%- endfor %}
+{% endfor %}\n
+"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+sort_commits = "oldest"
+tag_pattern = "v[0-9].*"
+# The comments only set the order of the sections, they are stripped afterwards.
+commit_parsers = [
+  { field = "breaking", pattern = "true", group = "<!-- 0 -->Breaking Changes" },
+  { message = "^feat", group = "<!-- 1 -->Features" },
+  { message = "^fix", group = "<!-- 2 -->Bug Fixes" },
+  { message = "^perf", group = "<!-- 3 -->Performance" },
+  { message = "^refactor", group = "<!-- 4 -->Refactoring" },
+  { message = "^docs", group = "<!-- 5 -->Documentation" },
+  { message = "^build", group = "<!-- 6 -->Build" },
+  # chore, ci, style, test and the release commits themselves.
+  { message = ".*", skip = true },
+]
+
+[bump]
+# While in 0.x a breaking change bumps the minor version, not the major one.
+breaking_always_bump_major = false

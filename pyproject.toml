@@ -45,9 +45,11 @@ test = [
   "fakeredis >=2.26.0",
 ]
 docs = ["mkdocs-material >=9.7.0, <10.0.0", "jieba >=0.42.1"]
+release = ["git-cliff >=2.14.2, <3.0.0"]
 dev = [
   { include-group = "codegen" },
   { include-group = "test" },
+  { include-group = "release" },
   "ruff >=0.14.0",
   "pyright >=1.1.400",
 ]
