@@ -5,8 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Literal, overload
 
-from feishukit.rest._base import BaseClient
-from feishukit.utils import UNSET, exclude_unset, path_param
+from larkify.rest._base import BaseClient
+from larkify.utils import UNSET, exclude_unset, path_param
 
 {% for module, names in runtime_imports %}
 from {{ module }} import (
@@ -17,8 +17,8 @@ from {{ module }} import (
 {% endfor %}
 
 if TYPE_CHECKING:
-    from feishukit.response import Response
-    from feishukit.typing import FileTypes, Missing, UnsetType
+    from larkify.response import Response
+    from larkify.typing import FileTypes, Missing, UnsetType
 {% for module, names in type_imports %}
     from {{ module }} import (
     {% for name in names %}

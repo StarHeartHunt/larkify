@@ -5,8 +5,8 @@ from typing import Any
 import httpx2
 import pytest
 
-from feishukit import AppAuthStrategy, Feishu
-from feishukit.cache import MemCacheStrategy
+from larkify import AppAuthStrategy, Feishu
+from larkify.cache import MemCacheStrategy
 
 OAUTH_TOKEN_URL = "https://accounts.feishu.cn/oauth/v3/token"
 

@@ -5,7 +5,7 @@ import anyio
 import httpx2
 import pytest
 
-from feishukit import (
+from larkify import (
     AppAuthStrategy,
     Feishu,
     IsvAppAuthStrategy,
@@ -13,8 +13,8 @@ from feishukit import (
     OAuthWebAuthStrategy,
     TokenAuthStrategy,
 )
-from feishukit.cache import MemCacheStrategy
-from feishukit.exception import (
+from larkify.cache import MemCacheStrategy
+from larkify.exception import (
     AuthCredentialError,
     AuthExpiredError,
     RequestFailed,
@@ -127,7 +127,7 @@ def test_private_deployment_without_accounts_host_uses_the_legacy_api():
 
 
 def test_lark_uses_the_lark_accounts_host():
-    from feishukit import LARK_BASE_URL
+    from larkify import LARK_BASE_URL
 
     feishu = Feishu("t-x", base_url=LARK_BASE_URL)
 

@@ -52,9 +52,9 @@ def main() -> None:
     official, ours = official_endpoints(root), our_endpoints()
 
     missing = sorted(set(official) - set(ours))
-    print(f"official SDK: {len(official)}, feishu-kit: {len(ours)}")
+    print(f"official SDK: {len(official)}, larkify: {len(ours)}")
     print(f"common: {len(set(official) & set(ours))}")
-    print(f"only in feishu-kit: {len(set(ours) - set(official))}")
+    print(f"only in larkify: {len(set(ours) - set(official))}")
     print(f"only in the official SDK: {len(missing)}")
     for key in missing:
         print("  ", *key)
@@ -68,7 +68,7 @@ def main() -> None:
     for key, mine, theirs in sorted(differing):
         print("  ", *key, sorted(mine or ()), "official:", sorted(theirs))
 
-    from feishukit.webhooks import get_event_class
+    from larkify.webhooks import get_event_class
 
     source = (root / "lark_oapi/event/dispatcher_handler.py").read_text(
         encoding="utf-8"

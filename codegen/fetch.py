@@ -171,7 +171,7 @@ async def fetch_event(
 
 async def run(refresh: bool) -> None:
     semaphore = asyncio.Semaphore(CONCURRENCY)
-    headers = {"User-Agent": "feishu-kit-codegen"}
+    headers = {"User-Agent": "larkify-codegen"}
     timeout = httpx2.Timeout(30.0)
     async with httpx2.AsyncClient(
         base_url=BASE_URL, headers=headers, timeout=timeout, follow_redirects=True

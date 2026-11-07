@@ -14,13 +14,13 @@ from wsproto.events import (
     Request,
 )
 
-from feishukit import AppAuthStrategy, Feishu
-from feishukit.cache import MemCacheStrategy
-from feishukit.exception import AuthCredentialError, WebSocketError
-from feishukit.webhooks import CardActionTriggerEvent, EventDispatcher
-from feishukit.webhooks.events.im import ImMessageReceiveV1Event
-from feishukit.ws import Frame, WSClient
-from feishukit.ws.frame import METHOD_CONTROL, METHOD_DATA
+from larkify import AppAuthStrategy, Feishu
+from larkify.cache import MemCacheStrategy
+from larkify.exception import AuthCredentialError, WebSocketError
+from larkify.webhooks import CardActionTriggerEvent, EventDispatcher
+from larkify.webhooks.events.im import ImMessageReceiveV1Event
+from larkify.ws import Frame, WSClient
+from larkify.ws.frame import METHOD_CONTROL, METHOD_DATA
 
 # Serialized by the official SDK's protobuf module.
 OFFICIAL_FRAME = bytes.fromhex(

@@ -27,7 +27,7 @@ from .ir import (
 )
 from .parser import sorted_models
 
-PACKAGE_DIR = Path(__file__).parent.parent / "feishukit"
+PACKAGE_DIR = Path(__file__).parent.parent / "larkify"
 REST_DIR = PACKAGE_DIR / "rest"
 MODELS_DIR = PACKAGE_DIR / "models"
 EVENTS_DIR = PACKAGE_DIR / "webhooks" / "events"
@@ -209,7 +209,7 @@ def render_models(project: Project, version: Version) -> None:
 def _imports(
     version: Version, resource: Resource
 ) -> tuple[list[tuple[str, list[str]]], list[tuple[str, list[str]]]]:
-    package = f"feishukit.models.{version.project_module}.{version.version}"
+    package = f"larkify.models.{version.project_module}.{version.version}"
     runtime: defaultdict[str, set[str]] = defaultdict(set)
     typing: defaultdict[str, set[str]] = defaultdict(set)
 
@@ -232,7 +232,7 @@ def _imports(
 
 
 def render_project(project: Project) -> None:
-    project_module = f"feishukit.rest.{project.py_name}"
+    project_module = f"larkify.rest.{project.py_name}"
     project_dir = REST_DIR / project.py_name
     children = []
 
@@ -281,7 +281,7 @@ def render_project(project: Project) -> None:
         render(
             "namespace.py.jinja",
             project_dir / version.version / "__init__.py",
-            base_module="feishukit.rest._base",
+            base_module="larkify.rest._base",
             base_class="BaseClient",
             class_name=f"{version.class_name}Client",
             docstring=f"{project.py_name} {version.version}",
@@ -291,7 +291,7 @@ def render_project(project: Project) -> None:
     render(
         "namespace.py.jinja",
         project_dir / "__init__.py",
-        base_module="feishukit.rest._base",
+        base_module="larkify.rest._base",
         base_class="BaseClient",
         class_name=f"{project.class_name}Client",
         docstring=project.py_name,
@@ -303,14 +303,14 @@ def render_rest_namespace(projects: list[Project]) -> None:
     render(
         "namespace.py.jinja",
         REST_DIR / "__init__.py",
-        base_module="feishukit.rest._base",
+        base_module="larkify.rest._base",
         base_class="BaseRestNamespace",
         class_name="RestNamespace",
         docstring="Every server-side API, by project, version and resource.",
         children=[
             {
                 "attribute": project.py_name,
-                "module": f"feishukit.rest.{project.py_name}",
+                "module": f"larkify.rest.{project.py_name}",
                 "class_name": f"{project.class_name}Client",
             }
             for project in projects

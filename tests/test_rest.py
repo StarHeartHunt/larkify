@@ -6,14 +6,14 @@ import httpx2
 from pydantic import ValidationError
 import pytest
 
-from feishukit import UNSET
-from feishukit.exception import (
+from larkify import UNSET
+from larkify.exception import (
     PaginationError,
     RateLimitExceeded,
     RequestFailed,
 )
-from feishukit.models.im.v1.message import CreateMessageBody
-from feishukit.retry import RetryRateLimit
+from larkify.models.im.v1.message import CreateMessageBody
+from larkify.retry import RetryRateLimit
 
 from .conftest import ok
 
@@ -350,7 +350,7 @@ def test_timeout_is_reported(make_client):
 
     feishu, _ = make_client(api)
 
-    from feishukit.exception import RequestTimeout
+    from larkify.exception import RequestTimeout
 
     with pytest.raises(RequestTimeout):
         send_text(feishu)
@@ -424,7 +424,7 @@ def test_upload_missing_a_required_file_is_rejected(make_client):
 def test_keyword_named_fields_map_back_to_the_wire_name(make_client, validate):
     from pydantic import Field
 
-    from feishukit import FeishuModel
+    from larkify import FeishuModel
 
     class Body(FeishuModel):
         from_: str = Field(alias="from")

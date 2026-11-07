@@ -70,7 +70,7 @@ def main() -> None:
                         stats["no document"] += 1
                         continue
                     api = document["detail"].get("apiSchema") or {}
-                    package = f"feishukit.models.{project.py_name}.{version.version}"
+                    package = f"larkify.models.{project.py_name}.{version.version}"
 
                     if endpoint.body is not None:
                         example = media_example(

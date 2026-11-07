@@ -1,4 +1,4 @@
-# feishu-kit
+# larkify
 
 现代、完整类型标注的飞书 / Lark Python SDK。API 与架构设计参考 [githubkit](https://github.com/yanyongyu/githubkit)，基于 [httpx2](https://github.com/pydantic/httpx2) 和 [pydantic](https://docs.pydantic.dev/) 构建。
 
@@ -8,23 +8,23 @@
 - token 自动获取、缓存、失效重取，`refresh_token` 轮换并发安全
 - 限流与服务端错误自动重试，且不会重放非幂等请求
 - 事件订阅支持 Webhook 和长连接，后者直接使用 httpx2 的 WebSocket，不依赖 protobuf
-- 按需加载，`import feishukit` 约 60ms
+- 按需加载，`import larkify` 约 60ms
 
 需要 Python 3.11+（来自 httpx2 的要求）。
 
 ```bash
-pip install feishu-kit
+pip install larkify
 
-pip install "feishu-kit[crypto]"  # 解密加密事件
-pip install "feishu-kit[ws]"      # 长连接
-pip install "feishu-kit[redis]"   # 多进程共享 token 缓存
-pip install "feishu-kit[all]"
+pip install "larkify[crypto]"  # 解密加密事件
+pip install "larkify[ws]"      # 长连接
+pip install "larkify[redis]"   # 多进程共享 token 缓存
+pip install "larkify[all]"
 ```
 
 ## 快速开始
 
 ```python
-from feishukit import AppAuthStrategy, Feishu
+from larkify import AppAuthStrategy, Feishu
 
 feishu = Feishu(AppAuthStrategy("cli_xxx", "app_secret"))
 
@@ -66,8 +66,8 @@ async def main() -> None:
 路径参数按位置传，查询参数和请求体字段按关键字传。请求体也可以整个通过 `data` 传字典或模型：
 
 ```python
-from feishukit import AppAuthStrategy, Feishu
-from feishukit.models.im.v1.message import CreateMessageBody
+from larkify import AppAuthStrategy, Feishu
+from larkify.models.im.v1.message import CreateMessageBody
 
 feishu = Feishu(AppAuthStrategy("cli_xxx", "app_secret"))
 
@@ -170,7 +170,7 @@ print(resp.json())
 切换身份用 `with_auth`，配置和缓存共享：
 
 ```python
-from feishukit import AppAuthStrategy, Feishu, OAuthToken
+from larkify import AppAuthStrategy, Feishu, OAuthToken
 
 auth = AppAuthStrategy("cli_xxx", "app_secret")
 feishu = Feishu(auth)
@@ -199,9 +199,9 @@ feishu.with_auth(user).rest.authen.v1.user_info.get()
 商店应用需要保存飞书每小时推送的 `app_ticket`：
 
 ```python
-from feishukit import Feishu, IsvAppAuthStrategy
-from feishukit.webhooks import EventDispatcher
-from feishukit.webhooks.events.application import AppTicketEvent
+from larkify import Feishu, IsvAppAuthStrategy
+from larkify.webhooks import EventDispatcher
+from larkify.webhooks.events.application import AppTicketEvent
 
 auth = IsvAppAuthStrategy("cli_xxx", "app_secret")
 feishu = Feishu(auth)
@@ -229,8 +229,8 @@ AppAuthStrategy("cli_xxx", "app_secret", tenant_token_api="legacy")
 ## 错误与重试
 
 ```python
-from feishukit import AppAuthStrategy, Feishu
-from feishukit.exception import RateLimitExceeded, RequestFailed, RequestTimeout
+from larkify import AppAuthStrategy, Feishu
+from larkify.exception import RateLimitExceeded, RequestFailed, RequestTimeout
 
 feishu = Feishu(AppAuthStrategy("cli_xxx", "app_secret"))
 
@@ -254,8 +254,8 @@ except RequestTimeout:
 ```python
 from datetime import timedelta
 
-from feishukit import AppAuthStrategy, Feishu
-from feishukit.retry import RetryChainDecision, RetryOption, RetryRateLimit, RetryServerError
+from larkify import AppAuthStrategy, Feishu
+from larkify.retry import RetryChainDecision, RetryOption, RetryRateLimit, RetryServerError
 
 
 def retry_timeouts(exc, retry_count):
@@ -276,9 +276,9 @@ Feishu(
 ## 配置
 
 ```python
-from feishukit import LARK_BASE_URL, AppAuthStrategy, Feishu
-from feishukit.cache import RedisCacheStrategy
-from feishukit.throttling import LocalThrottler
+from larkify import LARK_BASE_URL, AppAuthStrategy, Feishu
+from larkify.cache import RedisCacheStrategy
+from larkify.throttling import LocalThrottler
 from redis import Redis
 
 feishu = Feishu(
@@ -300,10 +300,10 @@ feishu = Feishu(
 不需要公网地址，也不需要处理加解密。
 
 ```python
-from feishukit import AppAuthStrategy, Feishu
-from feishukit.webhooks import EventDispatcher
-from feishukit.webhooks.events.im import ImMessageReceiveV1Event
-from feishukit.ws import WSClient
+from larkify import AppAuthStrategy, Feishu
+from larkify.webhooks import EventDispatcher
+from larkify.webhooks.events.im import ImMessageReceiveV1Event
+from larkify.ws import WSClient
 
 feishu = Feishu(AppAuthStrategy("cli_xxx", "app_secret"))
 dispatcher = EventDispatcher()
@@ -325,7 +325,7 @@ WSClient(feishu, dispatcher).run()
 
 ```python
 from fastapi import FastAPI, Request, Response
-from feishukit.webhooks import EventDispatcher
+from larkify.webhooks import EventDispatcher
 
 app = FastAPI()
 dispatcher = EventDispatcher(encrypt_key="...", verification_token="...")
@@ -354,7 +354,7 @@ def on_new(event) -> None:
 `card.action.trigger`、`url.preview.get` 这类回调的处理器返回值会回传给飞书：
 
 ```python
-from feishukit.webhooks import CardActionTriggerEvent, CardActionTriggerResponse
+from larkify.webhooks import CardActionTriggerEvent, CardActionTriggerResponse
 
 
 @dispatcher.on(CardActionTriggerEvent)
@@ -367,7 +367,7 @@ def on_click(event: CardActionTriggerEvent) -> CardActionTriggerResponse:
 ## 项目结构
 
 ```
-feishukit/
+larkify/
 ├── feishu.py, core.py     客户端、请求、响应检查、重试循环
 ├── auth/                  认证策略
 ├── cache/                 token 缓存
@@ -389,7 +389,7 @@ schema/                    文档元数据快照（不入库）
 
 ### 与 githubkit 的对应
 
-| githubkit | feishu-kit | 说明 |
+| githubkit | larkify | 说明 |
 | --- | --- | --- |
 | `GitHub` / `GitHubCore` | `Feishu` / `FeishuCore` | |
 | `github.rest.issues.create` | `feishu.rest.im.v1.message.create` | 多了版本一层，与飞书 API 结构一致 |
@@ -401,8 +401,8 @@ schema/                    文档元数据快照（不入库）
 | `BaseCacheStrategy` | 相同 | 只缓存 token，飞书 API 没有 HTTP 缓存语义，因此去掉了 hishel |
 | `RetryDecisionFunc` | 相同 | 5xx 只重试幂等方法 |
 | `Throttler` | 相同 | |
-| `github.webhooks` | `feishukit.webhooks` | 增加了事件分发和加解密 |
-| - | `feishukit.ws` | 飞书特有的长连接 |
+| `github.webhooks` | `larkify.webhooks` | 增加了事件分发和加解密 |
+| - | `larkify.ws` | 飞书特有的长连接 |
 
 和 githubkit 不同的取舍：
 

@@ -15,8 +15,8 @@ from typing import Any
 
 import httpx2
 
-from feishukit import Feishu, TokenAuthStrategy
-from feishukit.rest._base import BaseClient
+from larkify import Feishu, TokenAuthStrategy
+from larkify.rest._base import BaseClient
 
 SCHEMA = Path("schema/apis")
 METHOD_NAMES = {"get", "post", "put", "patch", "delete"}
@@ -137,7 +137,7 @@ def main() -> None:
                     stats["missing query"] += 1
                     problems.append(f"{name}: query {param} not sent")
 
-            allowed = request.extensions.get("feishukit.token_types")
+            allowed = request.extensions.get("larkify.token_types")
             tokens = expected[key]["tokens"]
             if tokens is None:
                 if allowed is not None:

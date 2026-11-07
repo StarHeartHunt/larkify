@@ -1,5 +1,5 @@
 [project]
-name = "feishu-kit"
+name = "larkify"
 version = "0.1.0"
 description = "Modern, fully typed Feishu / Lark SDK for Python"
 readme = "README.md"
@@ -49,7 +49,7 @@ requires = ["uv_build >=0.8.3, <0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "feishukit"
+module-name = "larkify"
 module-root = ""
 
 [tool.pytest.ini_options]
@@ -57,7 +57,7 @@ filterwarnings = ["error", "ignore::DeprecationWarning"]
 
 [tool.ruff]
 line-length = 88
-extend-exclude = ["schema", "feishukit/rest/*/", "feishukit/models", "feishukit/webhooks/events"]
+extend-exclude = ["schema", "larkify/rest/*/", "larkify/models", "larkify/webhooks/events"]
 
 [tool.ruff.lint]
 select = ["F", "E", "W", "I", "UP", "RUF", "ASYNC", "B", "C4", "T10", "PYI"]
@@ -68,11 +68,11 @@ ignore = ["E402", "E501", "B008", "B009", "B010", "RUF001", "RUF003", "RUF006", 
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
-known-first-party = ["feishukit", "codegen"]
+known-first-party = ["larkify", "codegen"]
 extra-standard-library = ["typing_extensions"]
 
 [tool.pyright]
-include = ["feishukit", "codegen", "tests", "scripts"]
+include = ["larkify", "codegen", "tests", "scripts"]
 exclude = ["schema", ".venv"]
 pythonVersion = "3.11"
 typeCheckingMode = "standard"

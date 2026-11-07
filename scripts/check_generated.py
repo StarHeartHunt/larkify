@@ -10,10 +10,10 @@ import sys
 import time
 import warnings
 
-from feishukit.model import FeishuModel
-import feishukit.models
-import feishukit.rest
-import feishukit.webhooks.events
+from larkify.model import FeishuModel
+import larkify.models
+import larkify.rest
+import larkify.webhooks.events
 
 warnings.simplefilter("error")
 
@@ -27,7 +27,7 @@ def main() -> None:
     start = time.perf_counter()
     count = built = 0
     failures = []
-    for package in (feishukit.models, feishukit.rest, feishukit.webhooks.events):
+    for package in (larkify.models, larkify.rest, larkify.webhooks.events):
         for name in modules(package):
             count += 1
             try:

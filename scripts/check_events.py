@@ -7,7 +7,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from codegen.events import event_sample
-from feishukit.webhooks import EVENT_MODULES, get_event_class, parse_obj
+from larkify.webhooks import EVENT_MODULES, get_event_class, parse_obj
 
 
 def main() -> None:

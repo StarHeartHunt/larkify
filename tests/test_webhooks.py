@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from feishukit.exception import WebhookVerificationFailed
-from feishukit.webhooks import (
+from larkify.exception import WebhookVerificationFailed
+from larkify.webhooks import (
     CardActionTriggerEvent,
     CardActionTriggerResponse,
     EventDispatcher,
@@ -15,9 +15,9 @@ from feishukit.webhooks import (
     sign,
     verify,
 )
-from feishukit.webhooks.crypto import encrypt
-from feishukit.webhooks.events.application import AppTicketEvent
-from feishukit.webhooks.events.im import ImMessageReceiveV1Event
+from larkify.webhooks.crypto import encrypt
+from larkify.webhooks.events.application import AppTicketEvent
+from larkify.webhooks.events.im import ImMessageReceiveV1Event
 
 ENCRYPT_KEY = "my-encrypt-key"
 TOKEN = "verification-token"
