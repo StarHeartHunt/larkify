@@ -1,6 +1,6 @@
 # larkify
 
-现代、完整类型标注的飞书 / Lark Python SDK。API 与架构设计参考 [githubkit](https://github.com/yanyongyu/githubkit)，基于 [httpx2](https://github.com/pydantic/httpx2) 和 [pydantic](https://docs.pydantic.dev/) 构建。
+现代、完整类型标注的飞书 / Lark Python SDK
 
 - 同步 / 异步同一套 API，所有接口都有 `create` 与 `async_create` 两种形式
 - 覆盖 1753 个服务端 API、205 个事件，代码由开放平台元数据生成
