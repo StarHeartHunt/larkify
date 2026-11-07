@@ -3,7 +3,7 @@ name = "larkify"
 version = "0.1.0"
 description = "Modern, fully typed Feishu / Lark SDK for Python"
 readme = "README.md"
-authors = [{ name = "StarHeartHunt" }]
+authors = [{ name = "StarHeartHunt", email = "starheart233@gmail.com" }]
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
 keywords = ["feishu", "lark", "sdk", "openapi"]
