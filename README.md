@@ -387,30 +387,6 @@ scripts/                   生成结果校验
 schema/                    文档元数据快照（不入库）
 ```
 
-### 与 githubkit 的对应
-
-| githubkit | larkify | 说明 |
-| --- | --- | --- |
-| `GitHub` / `GitHubCore` | `Feishu` / `FeishuCore` | |
-| `github.rest.issues.create` | `feishu.rest.im.v1.message.create` | 多了版本一层，与飞书 API 结构一致 |
-| `async_create` | `async_create` | |
-| `data=` 或关键字参数 | 相同 | |
-| `Response.parsed_data` | 相同 | 校验的是 `data`，不是整个响应体 |
-| `github.rest.paginate` | `feishu.rest.paginate` | 基于 `page_token`，`map_func` 改为 `paginate_with` |
-| `AuthStrategy` + `with_auth` | 相同 | |
-| `BaseCacheStrategy` | 相同 | 只缓存 token，飞书 API 没有 HTTP 缓存语义，因此去掉了 hishel |
-| `RetryDecisionFunc` | 相同 | 5xx 只重试幂等方法 |
-| `Throttler` | 相同 | |
-| `github.webhooks` | `larkify.webhooks` | 增加了事件分发和加解密 |
-| - | `larkify.ws` | 飞书特有的长连接 |
-
-和 githubkit 不同的取舍：
-
-- **响应字段用 `T | None` 而不是 `Missing[T]`。** 文档里响应字段几乎都不是必填，飞书也会返回 `null`，`UNSET` 只增加类型噪音。方法参数仍保留 `Missing` / `UNSET`。
-- **枚举只做静态检查。** 文档枚举可能滞后，方法参数和 `TypedDict` 用 `Literal`，pydantic 模型用基础类型，运行时不会因为新枚举值拒绝请求。
-- **模型放宽校验。** `extra="allow"`、数字可转字符串，因为模型来自文档而非正式 schema。
-- **只支持 pydantic v2 和 httpx2**，没有兼容层。
-
 ## 代码生成
 
 ```bash
