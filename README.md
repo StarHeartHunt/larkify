@@ -6,7 +6,7 @@
 [![pyright](https://img.shields.io/badge/types-pyright-797952.svg?logo=python&logoColor=edb641)](https://github.com/microsoft/pyright)
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-现代、完整类型标注的飞书 / Lark Python SDK。API 与架构设计参考 [githubkit](https://github.com/yanyongyu/githubkit)，基于 [httpx2](https://github.com/pydantic/httpx2) 和 [pydantic](https://docs.pydantic.dev/) 构建。
+现代、完整类型标注的飞书 / Lark Python SDK
 
 [**文档**](https://starhearthunt.github.io/larkify/) | [**反馈问题**](https://github.com/StarHeartHunt/larkify/issues) | [**飞书开放平台**](https://open.feishu.cn/document/)
 
