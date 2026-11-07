@@ -1,0 +1,46 @@
+{% include "header.jinja" %}
+
+from typing import Any, ClassVar
+
+from pydantic import Field
+
+from feishukit.model import FeishuModel
+from feishukit.webhooks.models import EventV1, EventV2
+
+
+{% for model in models %}
+class {{ model.name }}(FeishuModel):
+    {% if model.description %}
+    """{{ model.description | docstring }}"""
+
+    {% endif %}
+    {% for field in model.fields %}
+    {{ field.py_name }}: {{ field | field_annotation(model) }}{{ field | field_default(model) }}
+    {% if field.description %}
+    """{{ field.description | docstring }}"""
+    {% endif %}
+    {% endfor %}
+    {% if not model.fields %}
+    pass
+    {% endif %}
+
+
+{% endfor %}
+{% for event in events %}
+class {{ event.class_name }}({{ "EventV2" if event.schema_version == "v2" else "EventV1" }}):
+    """{{ event.title | docstring }}
+
+    See also: {{ event.doc_url }}
+    """
+
+    event_type: ClassVar[str] = {{ event.event_type | tojson }}
+
+    {% if event.data_class %}
+    event: {{ event.data_class }} | None = None
+    """事件体"""
+    {% else %}
+    pass
+    {% endif %}
+
+
+{% endfor %}

@@ -1,0 +1,29 @@
+{% include "header.jinja" %}
+
+from functools import cached_property
+from typing import TYPE_CHECKING
+
+from {{ base_module }} import {{ base_class }}
+
+if TYPE_CHECKING:
+{% for child in children %}
+    from {{ child.module }} import {{ child.class_name }}
+{% endfor %}
+
+
+class {{ class_name }}({{ base_class }}):
+{% if docstring %}
+    """{{ docstring | docstring }}"""
+
+{% endif %}
+{% for child in children %}
+    @cached_property
+    def {{ child.attribute }}(self) -> "{{ child.class_name }}":
+        from {{ child.module }} import {{ child.class_name }}
+
+        return {{ child.class_name }}(self._feishu)
+
+{% endfor %}
+{% if not children %}
+    pass
+{% endif %}

@@ -1,0 +1,121 @@
+{% include "header.jinja" %}
+
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Literal, overload
+
+from feishukit.rest._base import BaseClient
+from feishukit.utils import UNSET, exclude_unset, path_param
+
+{% for module, names in runtime_imports %}
+from {{ module }} import (
+{% for name in names %}
+    {{ name }},
+{% endfor %}
+)
+{% endfor %}
+
+if TYPE_CHECKING:
+    from feishukit.response import Response
+    from feishukit.typing import FileTypes, Missing, UnsetType
+{% for module, names in type_imports %}
+    from {{ module }} import (
+    {% for name in names %}
+        {{ name }},
+    {% endfor %}
+    )
+{% endfor %}
+
+
+class {{ class_name }}(BaseClient):
+{% for endpoint in endpoints %}
+{% for prefix in ("", "async_") %}
+{% set is_async = prefix == "async_" %}
+{% set define = "async def" if is_async else "def" %}
+{% set name = prefix ~ endpoint.method %}
+{% set returns = endpoint | return_type %}
+{% if endpoint is has_overloads %}
+    @overload
+    {{ define }} {{ name }}(
+        self,
+        {{ endpoint | leading_arguments }}
+        headers: Mapping[str, str] | None = None,
+        stream: bool = False,
+        data: {{ endpoint.body.typed_name }} | {{ endpoint.body.name }},
+    ) -> {{ returns }}: ...
+
+    @overload
+    {{ define }} {{ name }}(
+        self,
+        {{ endpoint | leading_arguments }}
+        data: UnsetType = UNSET,
+        headers: Mapping[str, str] | None = None,
+        stream: bool = False,
+        {{ endpoint | keyword_arguments }}
+    ) -> {{ returns }}: ...
+
+{% endif %}
+    {{ define }} {{ name }}(
+        self,
+        {{ endpoint | leading_arguments }}
+{% if endpoint.legacy %}
+        params: Mapping[str, Any] | None = None,
+{% endif %}
+        headers: Mapping[str, str] | None = None,
+        stream: bool = False,
+{% if endpoint.body %}
+        data: Missing[{{ endpoint.body.typed_name }} | {{ endpoint.body.name }}] = UNSET,
+        **kwargs: Any,
+{% elif endpoint.has_opaque_body or endpoint.legacy %}
+        data: Any = UNSET,
+{% endif %}
+    ) -> {{ returns }}:
+        """{{ endpoint.title | docstring }}
+
+        {{ endpoint.http_method }} {{ endpoint | wire_path | docstring }}
+{% if endpoint.description %}
+
+        {{ endpoint.description | docstring }}
+{% endif %}
+
+        See also: {{ endpoint.doc_url }}
+        """
+{% if endpoint.file_fields %}
+        form, files = self._feishu.build_form(
+            {{ endpoint.body.name }}, {{ endpoint.file_fields | python_tuple }}, data, kwargs
+        )
+{% endif %}
+        return {{ "await " if is_async }}self._feishu.{{ "arequest" if is_async else "request" }}(
+            "{{ endpoint.http_method }}",
+            {{ endpoint.url }},
+{% if endpoint.legacy %}
+            params=params,
+{% elif endpoint.query_params %}
+            params=exclude_unset({
+{% for param in endpoint.query_params %}
+                {{ param.wire_name | tojson }}: {{ param.py_name }},
+{% endfor %}
+            }),
+{% endif %}
+{% if endpoint.file_fields %}
+            data=form,
+            files=files,
+{% elif endpoint.body %}
+            json=self._feishu.build_body({{ endpoint.body.name }}, data, kwargs),
+{% elif endpoint.has_opaque_body or endpoint.legacy %}
+            json=exclude_unset(data),
+{% endif %}
+            headers=headers,
+            stream=stream,
+{% if endpoint.token_types is not none %}
+            token_types={{ endpoint.token_types | python_tuple }},
+{% endif %}
+            response_model={{ endpoint.response_model }},
+{% if endpoint.data_key is none %}
+            data_key=None,
+{% endif %}
+        )
+
+{% endfor %}
+{% endfor %}

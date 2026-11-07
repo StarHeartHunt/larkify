@@ -1,0 +1,66 @@
+{% include "header.jinja" %}
+
+from typing import Any, Literal, TypedDict
+from typing_extensions import Required
+
+from pydantic import Field
+
+from feishukit.model import FeishuModel
+from feishukit.typing import FileTypes
+
+{% if shared_imports %}
+from ._shared import (
+{% for name in shared_imports %}
+    {{ name }},
+{% endfor %}
+)
+{% endif %}
+
+{% for model in models %}
+class {{ model.name }}(FeishuModel):
+    {% if model.description %}
+    """{{ model.description | docstring }}"""
+
+    {% endif %}
+    {% for field in model.fields %}
+    {{ field.py_name }}: {{ field | field_annotation(model) }}{{ field | field_default(model) }}
+    {% if field.description %}
+    """{{ field.description | docstring }}"""
+    {% endif %}
+    {% endfor %}
+    {% if model.page_items %}
+
+    @property
+    def page_items(self) -> {{ model.page_items.type | model_hint }}:
+        return self.{{ model.page_items.py_name }} or []
+    {% endif %}
+
+    {% if not model.fields %}
+    pass
+    {% endif %}
+
+{% if model.variant == "request" %}
+{% if model is needs_functional_typed_dict %}
+{{ model.typed_name }} = TypedDict(
+    "{{ model.typed_name }}",
+    {
+    {% for field in model.fields %}
+        {{ field.wire_name | tojson }}: {{ field | typed_dict_annotation }},
+    {% endfor %}
+    },
+    total=False,
+)
+{% else %}
+class {{ model.typed_name }}(TypedDict, total=False):
+    {% for field in model.fields %}
+    {{ field.wire_name }}: {{ field | typed_dict_annotation }}
+    {% endfor %}
+{% endif %}
+{% endif %}
+
+{% endfor %}
+__all__ = (
+{% for name in exports %}
+    {{ name | tojson }},
+{% endfor %}
+)

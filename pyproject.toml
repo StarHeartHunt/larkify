@@ -1,0 +1,77 @@
+[project]
+name = "feishu-kit"
+version = "0.1.0"
+description = "Modern, fully typed Feishu / Lark SDK for Python"
+readme = "README.md"
+license = "MIT"
+keywords = ["feishu", "lark", "sdk", "openapi"]
+requires-python = ">=3.11, <4.0"
+dependencies = [
+  "anyio >=4.10.0, <5.0.0",
+  "httpx2 >=2.16.0, <3.0.0",
+  "pydantic >=2.11.0, <3.0.0",
+  "typing-extensions >=4.13.0, <5.0.0",
+]
+
+[project.optional-dependencies]
+# AES-256-CBC decryption of encrypted events and callbacks.
+crypto = ["cryptography >=42.0.0"]
+# Long-connection (WebSocket) event subscription.
+ws = ["httpx2[ws] >=2.16.0, <3.0.0"]
+# Token cache shared between processes.
+redis = ["redis >=5.0.0"]
+http2 = ["httpx2[http2] >=2.16.0, <3.0.0"]
+all = [
+  "cryptography >=42.0.0",
+  "httpx2[ws,http2] >=2.16.0, <3.0.0",
+  "redis >=5.0.0",
+]
+
+[dependency-groups]
+codegen = ["Jinja2 >=3.1.2, <4.0.0"]
+test = [
+  "pytest >=8.1.0, <10.0.0",
+  "pytest-cov >=7.0.0, <8.0.0",
+  "cryptography >=42.0.0",
+  "httpx2[ws] >=2.16.0, <3.0.0",
+  "fakeredis >=2.26.0",
+]
+dev = [
+  { include-group = "codegen" },
+  { include-group = "test" },
+  "ruff >=0.14.0",
+  "pyright >=1.1.400",
+]
+
+[build-system]
+requires = ["uv_build >=0.8.3, <0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "feishukit"
+module-root = ""
+
+[tool.pytest.ini_options]
+filterwarnings = ["error", "ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 88
+extend-exclude = ["schema", "feishukit/rest/*/", "feishukit/models", "feishukit/webhooks/events"]
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP", "RUF", "ASYNC", "B", "C4", "T10", "PYI"]
+ignore = ["E402", "E501", "B008", "B009", "B010", "RUF001", "RUF003", "RUF006", "UP006", "UP007"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ASYNC110", "ASYNC251"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["feishukit", "codegen"]
+extra-standard-library = ["typing_extensions"]
+
+[tool.pyright]
+include = ["feishukit", "codegen", "tests", "scripts"]
+exclude = ["schema", ".venv"]
+pythonVersion = "3.11"
+typeCheckingMode = "standard"

@@ -1,0 +1,17 @@
+{% include "header.jinja" %}
+
+from typing import Literal, TypeAlias
+
+EventType: TypeAlias = Literal[
+{% for event in events %}
+    {{ event.event_type | tojson }},
+{% endfor %}
+]
+
+# Event type to module and class. Modules are only imported when an event of that
+# type is received.
+EVENT_MODULES: dict[str, tuple[str, str]] = {
+{% for event in events %}
+    {{ event.event_type | tojson }}: ({{ event.project | tojson }}, {{ event.class_name | tojson }}),
+{% endfor %}
+}

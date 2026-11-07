@@ -1,0 +1,63 @@
+import abc
+from collections.abc import AsyncGenerator, Generator
+from contextlib import asynccontextmanager, contextmanager
+import threading
+from typing import Any
+from typing_extensions import override
+
+import anyio
+import httpx2
+
+
+class BaseThrottler(abc.ABC):
+    """Throttle the number of concurrent requests to avoid hitting rate limits."""
+
+    @abc.abstractmethod
+    @contextmanager
+    def acquire(self, request: httpx2.Request) -> Generator[None, Any, Any]:
+        raise NotImplementedError
+        yield
+
+    @abc.abstractmethod
+    @asynccontextmanager
+    async def async_acquire(self, request: httpx2.Request) -> AsyncGenerator[None, Any]:
+        raise NotImplementedError
+        yield
+
+
+class LocalThrottler(BaseThrottler):
+    """Simple local throttler."""
+
+    def __init__(self, max_concurrency: int) -> None:
+        self.max_concurrency = max_concurrency
+        self._lock = threading.Lock()
+        self._semaphore: threading.Semaphore | None = None
+        self._async_semaphore: anyio.Semaphore | None = None
+
+    @property
+    def semaphore(self) -> threading.Semaphore:
+        if self._semaphore is None:
+            with self._lock:
+                if self._semaphore is None:
+                    self._semaphore = threading.Semaphore(self.max_concurrency)
+        return self._semaphore
+
+    @property
+    def async_semaphore(self) -> anyio.Semaphore:
+        if self._async_semaphore is None:
+            with self._lock:
+                if self._async_semaphore is None:
+                    self._async_semaphore = anyio.Semaphore(self.max_concurrency)
+        return self._async_semaphore
+
+    @override
+    @contextmanager
+    def acquire(self, request: httpx2.Request) -> Generator[None, Any, Any]:
+        with self.semaphore:
+            yield
+
+    @override
+    @asynccontextmanager
+    async def async_acquire(self, request: httpx2.Request) -> AsyncGenerator[None, Any]:
+        async with self.async_semaphore:
+            yield
