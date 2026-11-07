@@ -473,4 +473,4 @@ PYTHONPATH=. uv run python scripts/check_official_sdk.py /path/to/oapi-sdk-pytho
 
 ## License
 
-[MIT](LICENSE)。部分代码源自 githubkit 和 oapi-sdk-python，其许可声明见 [NOTICE](NOTICE)。
+[MIT](https://github.com/StarHeartHunt/larkify/blob/main/LICENSE)。部分代码源自 githubkit 和 oapi-sdk-python，其许可声明见 [NOTICE](https://github.com/StarHeartHunt/larkify/blob/main/NOTICE)。

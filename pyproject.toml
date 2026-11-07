@@ -3,6 +3,7 @@ name = "larkify"
 version = "0.1.0"
 description = "Modern, fully typed Feishu / Lark SDK for Python"
 readme = "README.md"
+authors = [{ name = "StarHeartHunt" }]
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
 keywords = ["feishu", "lark", "sdk", "openapi"]
@@ -13,6 +14,11 @@ dependencies = [
   "pydantic >=2.11.0, <3.0.0",
   "typing-extensions >=4.13.0, <5.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/StarHeartHunt/larkify"
+Repository = "https://github.com/StarHeartHunt/larkify"
+Issues = "https://github.com/StarHeartHunt/larkify/issues"
 
 [project.optional-dependencies]
 # AES-256-CBC decryption of encrypted events and callbacks.
