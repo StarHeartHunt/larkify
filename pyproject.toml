@@ -74,6 +74,8 @@ select = ["F", "E", "W", "I", "UP", "RUF", "ASYNC", "B", "C4", "T10", "PYI"]
 ignore = ["E402", "E501", "B008", "B009", "B010", "RUF001", "RUF003", "RUF006", "UP006", "UP007"]
 
 [tool.ruff.lint.per-file-ignores]
+# `timeout` is handed to httpx2, nothing here waits on it.
+"larkify/core.py" = ["ASYNC109"]
 "tests/*" = ["ASYNC110", "ASYNC251"]
 
 [tool.ruff.lint.isort]

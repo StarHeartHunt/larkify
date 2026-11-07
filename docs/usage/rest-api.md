@@ -111,3 +111,16 @@ with open(resp.file_name or "download", "wb") as f:
     )
     print(resp.json())
     ```
+
+`feishu.request` 同样会校验响应、处理 token 和重试。个别接口的字段不在 `data` 里，比如获取机器人信息，用 `data_key=None` 取整个响应：
+
+```python
+resp = await feishu.arequest("GET", "/open-apis/bot/v3/info", data_key=None)
+print(resp.parsed_data["bot"]["open_id"])
+```
+
+`timeout` 可以覆盖客户端的超时配置，`None` 表示不限时。它对每次重试分别生效，也用于获取这次调用需要的 token：
+
+```python
+resp = feishu.request("GET", "/open-apis/unified_kms/v1/autonomous_keys", timeout=120)
+```

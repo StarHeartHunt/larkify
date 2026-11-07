@@ -35,6 +35,8 @@ CookieTypes: TypeAlias = httpx2.Cookies | dict[str, str] | list[tuple[str, str]]
 
 ContentTypes: TypeAlias = str | bytes
 
+TimeoutTypes: TypeAlias = float | httpx2.Timeout | None
+
 FileContent: TypeAlias = IO[bytes] | bytes
 FileTypes: TypeAlias = (
     FileContent

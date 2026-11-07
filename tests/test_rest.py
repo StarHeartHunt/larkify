@@ -356,6 +356,63 @@ def test_timeout_is_reported(make_client):
         send_text(feishu)
 
 
+@pytest.mark.anyio
+async def test_fields_outside_data_are_read_with_data_key_none(make_client):
+    feishu, _ = make_client(
+        lambda r: httpx2.Response(
+            200, json={"code": 0, "msg": "ok", "bot": {"open_id": "ou_1"}}
+        )
+    )
+
+    response = await feishu.arequest("GET", "/open-apis/bot/v3/info", data_key=None)
+
+    assert response.parsed_data["bot"]["open_id"] == "ou_1"
+
+
+def read_timeouts(requests):
+    return [request.extensions["timeout"]["read"] for request in requests]
+
+
+def test_timeout_replaces_the_client_default_for_one_call(make_client):
+    feishu, server = make_client(lambda r: ok(), timeout=30)
+
+    feishu.request("GET", "/open-apis/x/y")
+    feishu.request("GET", "/open-apis/x/y", timeout=5)
+    feishu.request("GET", "/open-apis/x/y", timeout=None)
+
+    assert read_timeouts(server.requests) == [30, 5, None]
+
+
+@pytest.mark.anyio
+async def test_async_timeout_replaces_the_client_default_for_one_call(make_client):
+    feishu, server = make_client(lambda r: ok(), timeout=30)
+
+    await feishu.arequest("GET", "/open-apis/x/y")
+    await feishu.arequest("GET", "/open-apis/x/y", timeout=5)
+    await feishu.arequest("GET", "/open-apis/x/y", timeout=None)
+
+    assert read_timeouts(server.requests) == [30, 5, None]
+
+
+def test_timeout_also_covers_fetching_the_token(make_client):
+    feishu, server = make_client(lambda r: ok(), timeout=30)
+
+    feishu.request("GET", "/open-apis/x/y", timeout=5)
+
+    assert read_timeouts(server.token_requests) == [5]
+
+
+def test_timeout_applies_to_each_attempt(make_client):
+    answers = iter(
+        [httpx2.Response(429, json={"code": 99991400}, headers={"retry-after": "0"})]
+    )
+    feishu, server = make_client(lambda r: next(answers, ok()), auto_retry=True)
+
+    feishu.request("GET", "/open-apis/x/y", timeout=5)
+
+    assert read_timeouts(server.requests) == [5, 5]
+
+
 def test_upload_sends_multipart(make_client):
     feishu, server = make_client(lambda r: ok({"image_key": "img_1"}))
 

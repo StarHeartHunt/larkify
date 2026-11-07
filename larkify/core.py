@@ -35,6 +35,7 @@ from .typing import (
     QueryParamTypes,
     RequestFiles,
     RetryDecisionFunc,
+    TimeoutTypes,
     TokenType,
     UnsetType,
     URLTypes,
@@ -372,6 +373,7 @@ class FeishuCore(Generic[A]):
         headers: HeaderTypes | None = None,
         cookies: CookieTypes | None = None,
         stream: bool = False,
+        timeout: TimeoutTypes | UnsetType = UNSET,
         token_types: tuple[TokenType, ...] | None = None,
     ) -> httpx2.Response:
         with self.get_sync_client() as client:
@@ -385,6 +387,7 @@ class FeishuCore(Generic[A]):
                 json=to_jsonable_python(json),
                 headers=headers,
                 cookies=cookies,
+                timeout=httpx2.USE_CLIENT_DEFAULT if timeout is UNSET else timeout,
                 extensions={TOKEN_TYPES_EXTENSION: token_types},
             )
             with self.config.throttler.acquire(request):
@@ -411,6 +414,7 @@ class FeishuCore(Generic[A]):
         headers: HeaderTypes | None = None,
         cookies: CookieTypes | None = None,
         stream: bool = False,
+        timeout: TimeoutTypes | UnsetType = UNSET,
         token_types: tuple[TokenType, ...] | None = None,
     ) -> httpx2.Response:
         async with self.get_async_client() as client:
@@ -424,6 +428,7 @@ class FeishuCore(Generic[A]):
                 json=to_jsonable_python(json),
                 headers=headers,
                 cookies=cookies,
+                timeout=httpx2.USE_CLIENT_DEFAULT if timeout is UNSET else timeout,
                 extensions={TOKEN_TYPES_EXTENSION: token_types},
             )
             async with self.config.throttler.async_acquire(request):
@@ -485,6 +490,7 @@ class FeishuCore(Generic[A]):
         headers: HeaderTypes | None = None,
         cookies: CookieTypes | None = None,
         stream: bool = False,
+        timeout: TimeoutTypes | UnsetType = UNSET,
         token_types: tuple[TokenType, ...] | None = None,
         response_model: TypeForm[T],
         data_key: str | None = "data",
@@ -504,6 +510,7 @@ class FeishuCore(Generic[A]):
         headers: HeaderTypes | None = None,
         cookies: CookieTypes | None = None,
         stream: bool = False,
+        timeout: TimeoutTypes | UnsetType = UNSET,
         token_types: tuple[TokenType, ...] | None = None,
         response_model: UnsetType = UNSET,
         data_key: str | None = "data",
@@ -522,6 +529,7 @@ class FeishuCore(Generic[A]):
         headers: HeaderTypes | None = None,
         cookies: CookieTypes | None = None,
         stream: bool = False,
+        timeout: TimeoutTypes | UnsetType = UNSET,
         token_types: tuple[TokenType, ...] | None = None,
         response_model: TypeForm[T] | UnsetType = UNSET,
         data_key: str | None = "data",
@@ -529,6 +537,8 @@ class FeishuCore(Generic[A]):
         """Send a request.
 
         Response will be checked and the request will be retried if necessary.
+        `timeout` replaces the client's for this call, `None` turns it off. It
+        applies to each attempt, and to fetching the token the call needs.
         """
         retry_count: int = 0
         while True:
@@ -544,6 +554,7 @@ class FeishuCore(Generic[A]):
                     headers=headers,
                     cookies=cookies,
                     stream=stream,
+                    timeout=timeout,
                     token_types=token_types,
                 )
                 if stream and self._needs_body(raw_resp):
@@ -575,6 +586,7 @@ class FeishuCore(Generic[A]):
         headers: HeaderTypes | None = None,
         cookies: CookieTypes | None = None,
         stream: bool = False,
+        timeout: TimeoutTypes | UnsetType = UNSET,
         token_types: tuple[TokenType, ...] | None = None,
         response_model: TypeForm[T],
         data_key: str | None = "data",
@@ -594,6 +606,7 @@ class FeishuCore(Generic[A]):
         headers: HeaderTypes | None = None,
         cookies: CookieTypes | None = None,
         stream: bool = False,
+        timeout: TimeoutTypes | UnsetType = UNSET,
         token_types: tuple[TokenType, ...] | None = None,
         response_model: UnsetType = UNSET,
         data_key: str | None = "data",
@@ -612,6 +625,7 @@ class FeishuCore(Generic[A]):
         headers: HeaderTypes | None = None,
         cookies: CookieTypes | None = None,
         stream: bool = False,
+        timeout: TimeoutTypes | UnsetType = UNSET,
         token_types: tuple[TokenType, ...] | None = None,
         response_model: TypeForm[T] | UnsetType = UNSET,
         data_key: str | None = "data",
@@ -619,6 +633,8 @@ class FeishuCore(Generic[A]):
         """Asynchronously send a request.
 
         Response will be checked and the request will be retried if necessary.
+        `timeout` replaces the client's for this call, `None` turns it off. It
+        applies to each attempt, and to fetching the token the call needs.
         """
         retry_count: int = 0
         while True:
@@ -634,6 +650,7 @@ class FeishuCore(Generic[A]):
                     headers=headers,
                     cookies=cookies,
                     stream=stream,
+                    timeout=timeout,
                     token_types=token_types,
                 )
                 if stream and self._needs_body(raw_resp):
