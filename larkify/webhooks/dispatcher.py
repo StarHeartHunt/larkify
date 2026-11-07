@@ -63,6 +63,11 @@ class EventDispatcher:
     `handle` and `ahandle` refuse to accept unauthenticated deliveries unless
     `insecure_no_verification=True`. The long connection authenticates itself,
     and needs no credentials here.
+
+    To route deliveries some other way, override `dispatch` and `adispatch`. They
+    receive the authenticated delivery as a dictionary, before any model is
+    built, whichever way it came in. The return value is what the delivery is
+    answered with, and `None` means a plain acknowledgement.
     """
 
     def __init__(

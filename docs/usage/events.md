@@ -40,3 +40,18 @@ def on_click(event: CardActionTriggerEvent) -> CardActionTriggerResponse:
         {"toast": {"type": "success", "content": "已处理"}}
     )
 ```
+
+## 接管分发
+
+需要把事件转给其他框架时，继承 `EventDispatcher` 并重写 `adispatch`（同步的 `handle` 对应 `dispatch`）。长连接和 Webhook 都会调用它，收到的是通过校验的事件字典，此时还没有构建模型：
+
+```python
+from larkify.webhooks import EventDispatcher
+
+
+class Forwarder(EventDispatcher):
+    async def adispatch(self, data) -> None:
+        queue.put_nowait(data)
+```
+
+返回值是对这次投递的响应，`None` 表示普通的确认。飞书要在超时前收到确认，所以耗时的工作不要在这里等待。

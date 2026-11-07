@@ -491,6 +491,27 @@ async def test_malformed_endpoint_answer_is_reported(server):
 
 
 @pytest.mark.anyio
+async def test_dispatcher_subclass_receives_deliveries(server):
+    delivered = []
+
+    class Forwarder(EventDispatcher):
+        async def adispatch(self, data):
+            delivered.append(data)
+
+    payload = {"header": {"event_type": "not.known_v1"}, "event": {}}
+    server.frames_on_connect.append([event_frame(payload).encode()])
+    client = WSClient(client_for(server), Forwarder())
+
+    async with anyio.create_task_group() as tasks:
+        tasks.start_soon(client.arun)
+        ack = await server.next_frame(METHOD_DATA)
+        assert json.loads(ack.payload) == {"code": 200}
+        tasks.cancel_scope.cancel()
+
+    assert delivered == [payload]
+
+
+@pytest.mark.anyio
 async def test_needs_application_credentials():
     client = WSClient(Feishu("t-token"), EventDispatcher())
 

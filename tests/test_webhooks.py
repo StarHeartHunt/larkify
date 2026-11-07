@@ -377,3 +377,58 @@ def test_async_handler_in_sync_handle_is_reported():
 
     assert response.status_code == 400
     assert b"ahandle" in response.body
+
+
+@pytest.mark.anyio
+async def test_subclass_takes_over_routing_after_authentication():
+    delivered = []
+
+    class Forwarder(EventDispatcher):
+        async def adispatch(self, data):
+            delivered.append(data)
+
+    dispatcher = Forwarder(verification_token=TOKEN)
+
+    accepted = await dispatcher.ahandle(json.dumps(message_event()).encode(), {})
+    forged = await dispatcher.ahandle(
+        json.dumps(message_event(token="forged")).encode(), {}
+    )
+
+    assert accepted.status_code == 200
+    assert forged.status_code == 401
+    assert delivered == [message_event()]
+
+
+def test_subclass_receives_the_decrypted_delivery():
+    delivered = []
+
+    class Forwarder(EventDispatcher):
+        def dispatch(self, data):
+            delivered.append(data)
+
+    dispatcher = Forwarder(encrypt_key=ENCRYPT_KEY)
+    body = json.dumps(
+        {
+            "encrypt": encrypt(
+                ENCRYPT_KEY, json.dumps(message_event()).encode(), b"0" * 16
+            )
+        }
+    ).encode()
+
+    response = dispatcher.handle(body, signed_headers(body))
+
+    assert response.status_code == 200
+    assert delivered == [message_event()]
+
+
+@pytest.mark.anyio
+async def test_subclass_result_answers_the_delivery():
+    class Forwarder(EventDispatcher):
+        async def adispatch(self, data):
+            return {"toast": {"type": "success"}}
+
+    dispatcher = Forwarder(verification_token=TOKEN)
+
+    response = await dispatcher.ahandle(json.dumps(message_event()).encode(), {})
+
+    assert json.loads(response.body) == {"toast": {"type": "success"}}
